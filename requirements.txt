@@ -1,3 +1,4 @@
 ultralytics
 flask
 werkzeug
+gunicorn

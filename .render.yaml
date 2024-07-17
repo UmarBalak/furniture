@@ -5,5 +5,5 @@ services:
     region: oregon
     plan: free
     buildCommand: ""
-    startCommand: "python app.py"
+    startCommand: "gunicorn app:app"
     autoDeploy: true
