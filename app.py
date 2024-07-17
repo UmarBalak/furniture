@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 from PIL import Image
 import io
 import os
-from furniture.furniture_fun import detect_furniture, get_top_complementary_items
+from furniture_fun import detect_furniture, get_top_complementary_items
 
 app = FastAPI()
 
