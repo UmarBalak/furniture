@@ -43,6 +43,10 @@ def upload_file():
             file.save(filepath)
             detected_items = detect_furniture(filepath)
             top_items = get_top_complementary_items(detected_items)
+
+            # Delete the uploaded file after processing
+            os.remove(filepath)
+            
             return render_template('results.html', detected_items=detected_items, top_items=top_items)
     return render_template('index.html')
 
