@@ -16,7 +16,14 @@ furniture_classes_list = [
 ]
 
 complementary_items = {
-    # (same as your provided complementary_items dictionary)
+    "bench": [("vase", 5), ("potted plant", 4), ("clock", 3), ("cabinet", 2), ("shelf", 1), ("sideboard", 1)],
+    "chair": [("dining table", 5), ("potted plant", 4), ("vase", 3), ("desk", 2), ("shelf", 1), ("wing_chair", 1)],
+    "couch": [("vase", 5), ("potted plant", 4), ("bench", 3), ("sideboard", 2), ("tv_bench", 1), ("chaise", 1)],
+    "potted plant": [("bench", 5), ("couch", 4), ("dining table", 3), ("shelf", 2), ("cabinet", 1), ("desk", 1)],
+    "bed": [("vase", 5), ("clock", 4), ("shelf", 3), ("cabinet", 2), ("sideboard", 1), ("sleeper", 1)],
+    "dining table": [("chair", 5), ("vase", 4), ("potted plant", 3), ("sideboard", 2), ("cabinet", 1), ("bench", 1)],
+    "clock": [("bench", 5), ("couch", 4), ("vase", 3), ("shelf", 2), ("desk", 1), ("tv_bench", 1)],
+    "vase": [("couch", 5), ("dining table", 4), ("bench", 3), ("shelf", 2), ("desk", 1), ("sideboard", 1)]
 }
 
 def allowed_file(filename):
