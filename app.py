@@ -1,52 +1,76 @@
-# from fastapi import FastAPI
-
-# app = FastAPI()
-
-# @app.get("/")
-# async def health_check():
-#     return "The health check is successful!"
-
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.responses import JSONResponse
-from PIL import Image
-import io
+from flask import Flask, request, render_template, redirect, url_for
+from ultralytics import YOLO
 import os
-from furniture_fun import detect_furniture, get_top_complementary_items
+from werkzeug.utils import secure_filename
 
-app = FastAPI()
+app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg'}
 
-@app.get("/")
-async def health_check():
-    return "The health check is successful!"
+# Load the YOLO model
+model = YOLO('yolov9s.pt')
 
-@app.post("/detect")
-async def detect_furniture_endpoint(file: UploadFile = File(...)):
-    if file.content_type not in ["image/jpeg", "image/png", "image/jpg"]:
-        raise HTTPException(status_code=400, detail="Invalid file type. Only jpg, jpeg, and png are accepted.")
+furniture_classes_list = [
+    "bench", "chair", "couch", "potted plant", 
+    "bed", "dining table", "clock", "vase"
+]
+
+complementary_items = {
+    # (same as your provided complementary_items dictionary)
+}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+@app.route('/', methods=['GET', 'POST'])
+def upload_file():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            return redirect(request.url)
+        file = request.files['file']
+        if file.filename == '':
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            detected_items = detect_furniture(filepath)
+            top_items = get_top_complementary_items(detected_items)
+            return render_template('results.html', detected_items=detected_items, top_items=top_items)
+    return render_template('index.html')
+
+def detect_furniture(image_path):
+    # Run predictions
+    results = model.predict(image_path)
     
-    image_bytes = await file.read()
-    image = Image.open(io.BytesIO(image_bytes))
-    image = image.resize((640, 480))  # Resize to match model's expected input size
+    # Filter detected classes
+    detected_classes = []
+    for result in results:
+        for cls in result.boxes.cls:
+            class_name = model.names[int(cls)]
+            if class_name in furniture_classes_list:
+                detected_classes.append(class_name)
 
-    detected_furniture = detect_furniture(image)
-    if not detected_furniture:
-        return JSONResponse(content={"detail": "No furniture detected in the image."}, status_code=200)
+    return detected_classes
 
-    top_complementary_furniture = get_top_complementary_items(detected_furniture)
-
-    response = {
-        "detected_furniture": detected_furniture,
-        "top_complementary_furniture": top_complementary_furniture
-    }
-
-    return JSONResponse(content=response, status_code=200)
-
-@app.post("/recommend")
-async def recommend_furniture_endpoint(detected_furniture: list):
-    top_complementary_furniture = get_top_complementary_items(detected_furniture)
+def get_top_complementary_items(detected_items):
+    item_counts = {}
+    for item in detected_items:
+        if item in complementary_items:
+            for comp_item, count in complementary_items[item]:
+                if comp_item in item_counts:
+                    item_counts[comp_item] += count
+                else:
+                    item_counts[comp_item] = count
     
-    response = {
-        "top_complementary_furniture": top_complementary_furniture
-    }
+    # Remove detected items from suggestions
+    for item in detected_items:
+        if item in item_counts:
+            del item_counts[item]
 
-    return JSONResponse(content=response, status_code=200)
+    # Sort items by count and return the top 5
+    sorted_items = sorted(item_counts.items(), key=lambda x: x[1], reverse=True)
+    return [item[0] for item in sorted_items[:5]]
+
+if __name__ == '__main__':
+    app.run(debug=True)

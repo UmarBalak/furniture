@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Detection Results</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Detected Furniture</h1>
+    <ul>
+        {% for item in detected_items %}
+        <li>{{ item }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Top Complementary Items</h2>
+    <ul>
+        {% for item in top_items %}
+        <li>{{ item }}</li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('upload_file') }}">Upload another image</a>
+</body>
+</html>

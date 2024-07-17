@@ -1,7 +1,4 @@
 from ultralytics import YOLO
-import os
-import random
-from PIL import Image
 
 furniture_classes_list = [
     "bench", "chair", "couch", "potted plant", 
